@@ -1,0 +1,34 @@
+﻿
+@page "/counter"
+@using Newtonsoft.Json;
+@using UI.Model;
+@using System.Net.Http;
+
+
+<PageTitle>Counter</PageTitle>
+
+<h1>Counter</h1>
+
+
+
+<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+<p role="status">Current count: @m</p>
+
+@code {
+    public int m ;
+
+
+    async  Task IncrementCount()
+    {
+        HttpClient client = new HttpClient();
+        client.BaseAddress = new Uri("https://localhost:7028");
+        client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+
+        HttpResponseMessage response2 = await client.GetAsync("/User?username=just_kate_0");
+        //    response2.EnsureSuccessStatusCode();
+        var content2 = response2.Content.ReadAsStringAsync().Result;
+        var result2 = JsonConvert.DeserializeObject<User_Info>(content2);
+         m = result2.response.body.data.user.edge_followed_by.count;
+        
+    }
+}

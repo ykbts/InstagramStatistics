@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "lBwJppu57AZ17PPp4W69HGI9rZ4buBuisWNH9c9jTPwAq54amxQJ0u/s5E2skGDP6Iq+VbqXUuVcOuiHp2yvug==",
+  "success": true,
+  "projectFilePath": "D:\\роботи ВС\\API_Inst\\UI\\UI.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\rakyc\\.nuget\\packages\\newtonsoft.json\\13.0.2\\newtonsoft.json.13.0.2.nupkg.sha512"
+  ],
+  "logs": []
+}

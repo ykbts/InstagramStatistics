@@ -1,0 +1,219 @@
+﻿@page "/Statistics/{Text}/{followers}/{following}"
+@inject NavigationManager MyNavigationManager
+@using Newtonsoft.Json;
+@using UI.Model;
+@using System.Net.Http;
+@using UI.Pages;
+
+
+<PageTitle>Statistics </PageTitle>
+<div style=" background-color: gray"  class="container">
+    <br> <h1 class="welcome">Welcome, @Text</h1> <br>
+    <div class="block_header">
+        <span class="underline">Followers<br>
+            <p>@followers</p>
+        </span>
+        <img class="my_media" src="@picture" width="200" height="200">
+        <span class="underline">Following<br>
+            <p>@following</p>
+        </span>
+        </div>
+    <br> <br>
+</div>
+<br>
+<table>
+    <tr>
+    <td><button class=button type="button" @onclick="MetodLost">Followers lost</button></td>
+    <td> <button class=button type="button" @onclick="MetodGained">Followers gained</button></td>
+    </tr>
+
+    <tr>
+        <td>
+            <p class="txt_parag" role="status">
+
+                @foreach (var todo in Lost)
+                {
+                    <li>@todo</li>
+                }
+
+            </p>
+        </td>
+        <td>
+            <p  role="status">
+
+                @foreach (var todo in Gained)
+                {
+                    <li>@todo</li>
+                }
+
+            </p>
+        </td>
+    </tr>
+</table>
+
+@code {
+    [Parameter]
+    public string Text { get; set; }
+    [Parameter]
+    public string followers { get; set; }
+    [Parameter]
+    public string following { get; set; }
+    public string picture { get; set; }
+
+
+  
+    public List<string> Lost = new List<string>();
+    public List<string> Gained = new List<string>();
+    public async Task Picture()
+    {
+        HttpClient client = new HttpClient();
+        client.BaseAddress = new Uri("https://localhost:7028");
+        client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+
+        HttpResponseMessage response = await client.GetAsync($"/User?username={Text}");
+        response.EnsureSuccessStatusCode();
+        var content = response.Content.ReadAsStringAsync().Result;
+        var result = JsonConvert.DeserializeObject<User_Info>(content);
+       
+        picture = result.response.body.data.user.profile_pic_url_hd;
+
+    }
+    
+    async Task MetodLost()
+    {
+        if (Lost.Count == 0)
+
+        {//  await MetodAsync();
+            HttpClient client = new HttpClient();
+            client.BaseAddress = new Uri("https://localhost:7028");
+            client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+
+            var link1 = "D:\\Myfollowers.txt";
+            var link2 = "D:\\Myfollowers1.txt";
+            List<string> readText1 = File.ReadAllLines(link1).ToList();
+            List<string> readText2 = File.ReadAllLines(link2).ToList();
+
+            var readText = readText1.Except(readText2);
+            Console.WriteLine("Падлюки");
+            foreach (string s in readText)
+            {
+                HttpResponseMessage response = await client.GetAsync($"/UserController2?id={long.Parse(s)}");
+                response.EnsureSuccessStatusCode();
+                var content = response.Content.ReadAsStringAsync().Result;
+                var result = JsonConvert.DeserializeObject<User_Info02>(content);
+                Console.WriteLine(result.response.body.user.username.ToString());
+                Lost.Add(result.response.body.user.username.ToString());
+            }
+        }
+        else Console.WriteLine("Нікого не знайдено");
+
+
+    }
+    async Task MetodGained()
+    {
+        if (Gained.Count == 0)
+        {
+            //await MetodAsync();
+            HttpClient client = new HttpClient();
+            client.BaseAddress = new Uri("https://localhost:7028");
+            client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+
+            var link1 = "D:\\Myfollowers.txt";
+            var link2 = "D:\\Myfollowers1.txt";
+            List<string> readText1 = File.ReadAllLines(link1).ToList();
+            List<string> readText2 = File.ReadAllLines(link2).ToList();
+            var readText0 = readText2.Except(readText1);
+            Console.WriteLine("Не падлюки");
+            foreach (string s in readText0)
+            {
+                HttpResponseMessage response = await client.GetAsync($"/UserController2?id={long.Parse(s)}");
+                response.EnsureSuccessStatusCode();
+                var content = response.Content.ReadAsStringAsync().Result;
+                var result = JsonConvert.DeserializeObject<User_Info02>(content);
+                Console.WriteLine(result.response.body.user.username);
+                Gained.Add(result.response.body.user.username);
+            }
+        }
+        else Console.WriteLine("Нікого не знайдено");
+    }
+
+
+    async Task MetodAsync()
+    {
+
+        HttpClient client = new HttpClient();
+        client.BaseAddress = new Uri("https://localhost:7028");
+        client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+        string x;
+        int k = 0;
+        StreamWriter wr = new StreamWriter("D:\\Myfollowers1.txt");
+
+        HttpResponseMessage response = await client.GetAsync($"/InstagramData?username={Text}&user_id=3641210586");
+        response.EnsureSuccessStatusCode();
+        var content = response.Content.ReadAsStringAsync().Result;
+        var result = JsonConvert.DeserializeObject<Data>(content);
+
+        if (result.collector != null)
+        {
+            foreach (var t in result.collector)
+            {
+                k++;
+                wr.WriteLine($"{t.id}");
+
+            }
+        }
+        else Console.WriteLine("Помилка");
+
+        if (response.IsSuccessStatusCode)
+        {
+            x = result.end_cursor.ToString();
+
+
+            int i = 1;
+
+
+            while (k <= Convert.ToInt32(followers))
+            {
+                if (i < 25)
+                {
+                    HttpResponseMessage response3 = await client.GetAsync($"/InstagramData2?username=just_kate_0&end_cursor={x}&user_id=3641210586");
+                    response3.EnsureSuccessStatusCode();
+                    if (response3.IsSuccessStatusCode)
+                    {
+                        var content3 = response3.Content.ReadAsStringAsync().Result;
+                        var result3 = JsonConvert.DeserializeObject<Data>(content3);
+
+                        if (result3.collector != null)
+                        {
+                            x = result3.end_cursor.ToString();
+                            if (k <= Convert.ToInt32(followers))
+                            {
+                                foreach (var t in result3.collector)
+                                {
+                                    if (t != null)
+                                    {
+                                        k++;
+                                        wr.WriteLine($"{t.id}");
+                                    }
+                                }
+
+                            }
+                            else break;
+                        }
+
+                        i++;
+                    }
+                    else continue;
+
+
+                }
+                else break;
+            }
+            wr.Close();
+        }
+
+        else Console.WriteLine("No res");
+
+    }
+   
+}

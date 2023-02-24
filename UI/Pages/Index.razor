@@ -1,0 +1,55 @@
+﻿@page "/"
+@using Newtonsoft.Json;
+@using UI.Model;
+@using System.Net.Http;
+@inject NavigationManager MyNavigationManager
+
+<PageTitle>Instagram Analytics</PageTitle>
+<form class="container">
+    <label class="text"><b>Enter username</b></label>
+
+    <br> <input @bind-value="@Text" class="input-border" @oninput="Username" type="text" placeholder="Username"><br>
+
+    <br> <button class="button" type="button" @onclick="Navigate">Let's go!</button>
+
+
+ </form>
+ 
+ 
+
+
+@code {
+
+    public int followers { get; set; }
+    public int following { get; set; }
+    public string picture { get; set; }
+
+    async Task Navigate(){
+        await Count();
+        MyNavigationManager.NavigateTo($"/Statistics/{Text}/{followers}/{following}");
+
+
+    }
+    public string Text { get; set; }
+
+    public void Username(ChangeEventArgs e)
+    {
+        Text = e.Value.ToString();
+
+    }
+    async Task Count()
+    {
+        HttpClient client = new HttpClient();
+        client.BaseAddress = new Uri("https://localhost:7028");
+        client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+
+        HttpResponseMessage response = await client.GetAsync($"/User?username={Text}");
+        response.EnsureSuccessStatusCode();
+        var content = response.Content.ReadAsStringAsync().Result;
+        var result = JsonConvert.DeserializeObject<User_Info>(content);
+        followers = result.response.body.data.user.edge_followed_by.count;
+        following = result.response.body.data.user.edge_follow.count;
+        picture = result.response.body.data.user.profile_pic_url_hd;
+       
+    }
+}
